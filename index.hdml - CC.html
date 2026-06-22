@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Dika's Portfolio</title>
+	<meta name="description" content="Dika's portfolio — resume, projects, photos and videos. View and upload media; live clock and quick resume access.">
+	<meta name="robots" content="index, follow">
+	<meta property="og:title" content="Dika's Portfolio">
+	<meta property="og:description" content="Explore Dika's resume, projects, photos and videos.">
+	<meta property="og:type" content="website">
+	<meta name="twitter:card" content="summary_large_image">
+	<script type="application/ld+json">
+		{"@context":"https://schema.org","@type":"Person","name":"Dika","description":"Portfolio site for Dika","url":"https://example.com"}
+	</script>
+	<style>
+		:root{--bg:#071A3D;--accent1:#ff4b4b;--accent2:#ffd93d;--accent3:#ff8fb1;--accent4:#7b61ff}
+		html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial}
+		body{background:var(--bg);color:#fff}
+
+		/* Welcome overlay (colorful while keeping page milky) */
+		.welcome-overlay{position:fixed;inset:0;display:flex;align-items:flex-start;justify-content:flex-start;flex-direction:column;z-index:9999;transition:opacity .8s ease, visibility .8s;padding-top:6vh;padding-bottom:6vh;max-height:100vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
+		.welcome-overlay::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg, rgba(255,107,107,0.18), rgba(255,217,61,0.18), rgba(107,255,217,0.18), rgba(123,97,255,0.18));backdrop-filter:blur(6px);}
+		.welcome-overlay::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 20%, rgba(255,107,107,0.06), transparent 10%), radial-gradient(circle at 80% 80%, rgba(123,97,255,0.06), transparent 15%);}
+		.welcome-overlay > *{position:relative;z-index:1}
+		.welcome-hidden{opacity:0;visibility:hidden;pointer-events:none}
+		.welcome-art{position:absolute;inset:0;width:100%;height:100%;z-index:0;opacity:0.12;pointer-events:none}
+			.title{font-size:clamp(2.2rem,6vw,5rem);font-weight:800;text-align:center;line-height:1;margin-bottom:.15rem}
+			#welcome-count{margin-top:.35rem;font-size:1.25rem;font-weight:900;color:#fff}
+			/* Bio area shown on welcome beneath title and countdown */
+			.welcome-bio{max-width:960px;margin-top:1rem;background:rgba(255,255,255,0.03);padding:1rem 1.25rem;border-radius:10px;color:rgba(255,255,255,0.95);font-size:clamp(0.95rem,1.6vw,1.05rem);line-height:1.5;box-shadow:0 12px 30px rgba(0,0,0,0.25);text-align:left}
+			.welcome-bio h3{margin-top:0;margin-bottom:.35rem;font-size:1.1rem}
+			.welcome-bio ul{margin:0.5rem 0 0 1.2rem}
+			.skip-btn{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:10001;background:linear-gradient(90deg,#ffffff,#ffd93d);color:#071A3D;border:none;padding:.45rem .8rem;border-radius:10px;font-weight:800;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,0.18)}
+			#skip-welcome{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:10002}
+			.skip-btn:active{transform:translateX(-50%) translateY(1px)}
+			/* Subtle custom scrollbar for the welcome overlay */
+			.welcome-overlay{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.18) transparent}
+			.welcome-overlay::-webkit-scrollbar{width:10px}
+			.welcome-overlay::-webkit-scrollbar-track{background:transparent}
+			.welcome-overlay::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.06));border-radius:8px;border:2px solid transparent;background-clip:padding-box}
+			.welcome-overlay::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,rgba(255,255,255,0.22),rgba(255,255,255,0.12))}
+		.title .gradient{
+			background:linear-gradient(90deg,var(--accent1),var(--accent2),var(--accent3));
+			-webkit-background-clip:text;background-clip:text;color:transparent;background-size:200% 200%;animation:slide 6s linear infinite
+		}
+		@keyframes slide{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+		/* Top-right clock */
+		#clock{position:fixed;top:12px;right:16px;background:linear-gradient(90deg,var(--accent2),var(--accent4));color:#fff;backdrop-filter:blur(6px);padding:.35rem .6rem;border-radius:10px;font-weight:700;z-index:10000;box-shadow:0 6px 18px rgba(123,97,255,.12);text-shadow:0 1px 0 rgba(0,0,0,.12)}
+		#clock .clock-date{display:block;font-size:0.78rem;font-weight:700;line-height:1}
+		#clock .clock-time{display:block;font-size:0.95rem;font-weight:900;margin-top:2px}
+
+		/* Page layout */
+		main{max-width:900px;margin:6rem auto 4rem;padding:1rem}
+		/* Hidden state for main while welcome shows */
+		.hidden{visibility:hidden;opacity:0;pointer-events:none}
+		form[role=search]{margin:1rem 0}
+		.cv-section{margin-top:2rem;position:relative;min-height:100vh;background:linear-gradient(180deg,#0b3b2f,#083022);display:block;padding:3.5rem 1rem 1rem;box-sizing:border-box;color:#fff}
+		.cv-embed{display:none}
+		.cv-header{position:absolute;top:12px;right:72px;display:flex;gap:.5rem;align-items:center;z-index:20}
+		.resume-left{position:relative}
+		#return-home.home-left{background:linear-gradient(90deg,#ff6161,#e03131);color:#fff;border:none;padding:.25rem .6rem;font-size:.85rem;min-height:30px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.12);display:inline-block;margin-bottom:.6rem}
+		#return-home{width:auto;height:auto}
+		.cv-controls{display:flex;gap:.5rem;align-items:center}
+		.cv-controls a,.cv-controls button{background:linear-gradient(90deg,var(--accent2),var(--accent4));color:#111;padding:.45rem .7rem;border-radius:8px;border:none;font-weight:700;text-decoration:none;cursor:pointer;box-shadow:0 6px 18px rgba(123,97,255,.08)}
+		.cv-controls button{background:linear-gradient(90deg,var(--accent1),var(--accent3));color:#fff}
+		.cv-settings{position:absolute;top:12px;right:12px;z-index:30}
+		.settings-btn{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:#fff;width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+		.settings-menu{position:absolute;top:54px;right:0;background:linear-gradient(90deg,#172f24,#0c241d);border:1px solid rgba(255,255,255,0.06);padding:.5rem;border-radius:8px;display:none;min-width:180px}
+		.settings-menu a,.settings-menu button{display:block;width:100%;text-align:left;padding:.45rem .5rem;border-radius:6px;border:none;background:transparent;color:#fff;text-decoration:none;cursor:pointer}
+		.cv-avatar{position:absolute;top:12px;right:140px;width:84px;height:84px;border-radius:10px;object-fit:cover;border:2px solid rgba(255,255,255,0.12);z-index:20}
+		/* Resume layout */
+		.resume-grid{display:flex;gap:2rem;align-items:flex-start}
+		.resume-left{flex:0 0 320px}
+		.resume-right{flex:1}
+		.resume-name{font-size:1.6rem;line-height:1;letter-spacing:0.02em;font-weight:900}
+		.resume-summary{border-top:1px solid rgba(255,255,255,0.08);border-bottom:1px solid rgba(255,255,255,0.04);padding:1rem 0;margin:1rem 0;color:rgba(255,255,255,0.85)}
+		.resume-section h2{margin:.5rem 0;border-bottom:1px solid rgba(255,255,255,0.04);padding-bottom:.25rem}
+		.resume-list{margin:0;padding-left:1rem;color:rgba(255,255,255,0.9)}
+		.resume-contact{margin-top:1.5rem;color:rgba(255,255,255,0.9);font-weight:700}
+		@media (max-width:800px){
+			.resume-grid{flex-direction:column}
+			.resume-left{flex:auto}
+		}
+		/* Responsive tweaks for the welcome screen */
+		@media (max-width:800px){
+			.welcome-overlay{padding-top:4vh}
+			.title{font-size:clamp(1.8rem,8vw,3rem)}
+			.welcome-bio{padding:.75rem;font-size:0.98rem;margin:0 1rem}
+			.welcome-art{opacity:0.08}
+		}
+		@media (max-width:480px){
+			.welcome-overlay{padding-top:3vh}
+			.title{font-size:clamp(1.6rem,9vw,2.2rem)}
+			#welcome-count{font-size:1rem;margin-top:.25rem}
+			.welcome-bio{font-size:0.95rem;padding:.65rem;margin:0 .75rem}
+			.cv-avatar{width:64px;height:64px;right:120px}
+			#session-count{right:108px}
+		}
+		@media (max-width:600px){.cv-embed{height:520px}}
+
+		/* Upload area */
+		.upload-area{border:2px dashed rgba(0,0,0,.08);padding:1rem;border-radius:8px;background:rgba(255,255,255,0.6)}
+		.upload-controls{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+		.gallery{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.75rem}
+		.thumb{width:140px;height:100px;object-fit:cover;border-radius:6px;border:1px solid #ddd}
+		.media-item{position:relative}
+		.remove-btn{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:50%;width:26px;height:26px;cursor:pointer}
+		.copy-btn{background:linear-gradient(90deg,var(--accent2),var(--accent4));color:#111;padding:.25rem .5rem;border-radius:6px;border:none;font-weight:700;cursor:pointer}
+		/* Contact styling: dark green background with red text */
+		#contact{background:linear-gradient(180deg,#0b3b2f,#083022);padding:1rem;border-radius:8px;color:#ff4b4b;margin-top:1.25rem}
+		#contact strong,#contact a,#contact span{color:#ff4b4b}
+		#contact .copy-btn{background:rgba(255,255,255,0.12);color:#fff;padding:.25rem .5rem;border-radius:6px;border:none}
+
+		/* Modal for password entry */
+		.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:20001}
+		.modal-box{background:linear-gradient(180deg,#0f2b24,#06221b);padding:1rem;border-radius:10px;color:#fff;max-width:420px;width:92%;box-shadow:0 12px 30px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.04)}
+		.modal-box h3{margin:0 0 .5rem;font-size:1.05rem}
+		.modal-box p{margin:0 0 .75rem;color:rgba(255,255,255,0.85)}
+		.modal-input{width:100%;padding:.5rem;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.06);color:#fff}
+		.modal-actions{display:flex;gap:.5rem;justify-content:flex-end;margin-top:.75rem}
+	</style>
+</head>
+<body>
+
+	<div id="clock" aria-live="polite">--:--:--</div>
+	<div id="session-count" aria-live="polite" style="position:fixed;top:12px;right:140px;background:rgba(255,255,255,0.06);padding:.35rem .6rem;border-radius:8px;color:#fff;font-weight:700;z-index:10000;display:none">01:00:00</div>
+
+	<div id="welcome" class="welcome-overlay">
+		<button id="skip-welcome" class="skip-btn" aria-label="Skip intro">Skip</button>
+		<svg class="welcome-art" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+			<!-- monitor -->
+			<rect x="140" y="70" width="420" height="260" rx="18" ry="18" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="6"/>
+			<rect x="170" y="110" width="360" height="200" rx="10" ry="10" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="4"/>
+			<rect x="320" y="330" width="80" height="12" rx="4" ry="4" fill="rgba(255,255,255,0.9)"/>
+			<!-- screwdriver -->
+			<g transform="translate(700,120) rotate(-18)">
+				<rect x="0" y="0" width="10" height="140" rx="4" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="6"/>
+				<ellipse cx="5" cy="-10" rx="18" ry="10" fill="rgba(255,255,255,0.95)" stroke="rgba(255,255,255,0.6)" stroke-width="3"/>
+			</g>
+			<!-- little code snippet -->
+			<g transform="translate(560,210)">
+				<rect x="0" y="0" width="220" height="110" rx="8" ry="8" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="4"/>
+				<text x="18" y="34" fill="rgba(255,255,255,0.9)" font-family="monospace" font-size="28">const hello = 'hi';</text>
+				<text x="18" y="68" fill="rgba(255,255,255,0.8)" font-family="monospace" font-size="24">&lt;div&gt;code&lt;/div&gt;</text>
+			</g>
+		</svg>
+		<div class="title"><span class="gradient">Dika's Portfolio</span></div>
+		<div id="welcome-count">Loading — 10s</div>
+		<div class="welcome-bio" role="region" aria-label="Introduction">
+			<h3>Welcome to My Portfolio</h3>
+			<p>Hello, I am Ibeh Onyedikachukwu Augustine, a dedicated Computer Hardware Technician, IT Support enthusiast, and aspiring Web Developer with practical experience in computer maintenance, repair, troubleshooting, and digital solutions.</p>
+			<p>I have hands-on experience diagnosing and repairing computer faults, installing and configuring operating systems, maintaining computer systems, upgrading hardware components, and providing technical support to users.</p>
+			<p>Beyond computer hardware, I have developed skills in website creation and web development. I can design and build responsive websites, create personal portfolios, structure web pages using HTML and CSS, improve website appearance, and develop digital platforms that help individuals and businesses showcase their ideas online.</p>
+			<p>My experience working with computer systems has helped me develop strong problem-solving skills, attention to detail, and the ability to create practical technology solutions.</p>
+			<p><strong>What I Can Do:</strong></p>
+			<ul>
+				<li>Computer hardware repair and troubleshooting</li>
+				<li>Laptop and desktop maintenance</li>
+				<li>Windows installation and system configuration</li>
+				<li>Software installation and setup</li>
+				<li>Hardware upgrades and performance improvement</li>
+				<li>ICT support and computer management</li>
+				<li>Website creation and design</li>
+				<li>HTML and CSS website development</li>
+				<li>Personal portfolio website creation</li>
+				<li>Basic web customization and improvements</li>
+				<li>Technical problem solving and IT support</li>
+			</ul>
+			<p>I am passionate about technology, continuous learning, and creating solutions that make life easier through computers and the internet.</p>
+			<p>This portfolio showcases my skills, projects, and my journey in the world of IT, hardware repair, and web development.</p>
+		</div>
+	</div>
+
+	<main class="hidden">
+		<!-- Search input -->
+		<form role="search" aria-label="Site search" style="padding:0 1rem;">
+			<label for="search-dika" style="display:block;margin-bottom:.25rem;font-weight:600">Search</label>
+			<input id="search-dika" name="dika tech portfolio" type="search" placeholder="Search the portfolio..." style="width:100%;padding:.5rem;border:1px solid #ccc;border-radius:4px;" />
+		</form>
+
+		<!-- Upload area for pictures & videos -->
+		<section id="media" class="upload-area" aria-label="Upload media">
+			<h3 style="margin-top:0">Upload Pictures & Videos</h3>
+			<div class="upload-controls">
+				<button id="unlock-gallery" class="copy-btn" aria-label="Unlock gallery">Unlock Gallery</button>
+				<input id="file-input" type="file" accept="image/*,video/*" multiple aria-label="Choose files to upload" />
+				<button id="clear-gallery" type="button">Clear Gallery</button>
+				<div style="margin-left:auto;color:rgba(0,0,0,.6);font-size:.9rem">You can upload anytime — previews show below</div>
+			</div>
+			<div id="gallery" class="gallery" aria-live="polite"></div>
+		</section>
+
+		<!-- CV / Resume section -->
+		<section id="cv" class="cv-section">
+			<div class="cv-settings">
+				<button class="settings-btn" id="settings-toggle" aria-haspopup="true" aria-expanded="false" title="Settings">
+					<!-- gear icon -->
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06A2 2 0 0 1 2.3 16.9l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82L4.3 2.3A2 2 0 0 1 7.13.47l.06.06A1.65 1.65 0 0 0 9 1.26c.5.2 1.05.33 1.6.33.55 0 1.1-.12 1.6-.33a1.65 1.65 0 0 0 1.81-.33l.06-.06A2 2 0 0 1 19.4 4.3l-.06.06a1.65 1.65 0 0 0-.33 1.82c.2.5.33 1.05.33 1.6 0 .55.12 1.1.33 1.6.2.5.55 1.05.33 1.6z"></path></svg>
+				</button>
+				<div class="settings-menu" id="settings-menu" role="menu" aria-hidden="true">
+					<a id="download-cv" href="Resume%20Document%20Medium%20(1).pdf" download role="menuitem">Download PDF</a>
+					<button id="print-resume" role="menuitem">Print</button>
+					<button id="change-profile-image" role="menuitem">Change profile image</button>
+				</div>
+
+			</div>
+			<img src="avatar.jpg" alt="Dika" class="cv-avatar" id="cv-avatar" />
+			<!-- Avatar upload and crop UI (hidden by default) -->
+			<input id="avatar-input" type="file" accept="image/*" style="display:none" />
+			<div id="avatar-crop-modal" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:20000">
+				<div style="background:#fff;padding:1rem;border-radius:8px;max-width:520px;width:92%;color:#111">
+					<h3 style="margin-top:0">Crop Avatar</h3>
+					<canvas id="avatar-canvas" width="320" height="320" style="width:100%;max-width:320px;border:1px solid #ddd;display:block;margin:0 auto 1rem"></canvas>
+					<div style="display:flex;gap:.5rem;justify-content:center">
+						<button id="save-avatar" class="settings-btn" style="background:linear-gradient(90deg,var(--accent1),var(--accent3));color:#fff">Save Avatar</button>
+						<button id="cancel-avatar" class="settings-btn" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:#fff">Cancel</button>
+					</div>
+					<p style="font-size:.85rem;color:#333;margin-top:.75rem;text-align:center">The crop is square and will be centered automatically. You can change the avatar anytime.</p>
+				</div>
+			</div>
+			<div style="padding-top:0.25rem" id="resume-content">
+				<div class="resume-grid">
+						<div class="resume-left">
+							<button id="return-home" class="settings-btn home-left" title="Return to Home">Home</button>
+							<div class="resume-name">IBEH<br>
+						ONYEDIKACHUKWU<br>
+						AUGUSTINE</div>
+						<p class="resume-summary">A dedicated and hardworking individual with practical experience in computer maintenance and repair, seeking an opportunity to apply my technical skills in a professional environment. I am eager to learn, grow, and contribute positively to any organization I join.</p>
+
+						<div class="resume-section" aria-label="Education">
+							<h2>EDUCATION</h2>
+							<div style="margin-bottom:.5rem">
+								<strong>ST. MICHAEL MODEL COMPREHENSIVE SECONDARY SCHOOL, NIMO</strong><br>
+								Senior Secondary Education — 2020–2024
+							</div>
+							<div style="margin-bottom:.5rem">
+								<strong>CHRIST THE KING SECONDARY SCHOOL, AKABO/WPRI</strong><br>
+								Junior Secondary Education
+							</div>
+							<div>
+								<strong>PSALM 23 NURSERY AND PRIMARY SCHOOL, BENIN CITY</strong><br>
+								Primary Education — 2008–2014
+							</div>
+						</div>
+
+						<div class="resume-section" aria-label="Skills">
+							<h2>SKILLS</h2>
+							<ul class="resume-list">
+								<li>Computer hardware repair and troubleshooting</li>
+								<li>System maintenance and support</li>
+								<li>Basic IT support and computer management</li>
+								<li>Problem-solving skills</li>
+								<li>Fast learner and adaptable</li>
+								<li>Good communication skills</li>
+							</ul>
+						</div>
+
+						<div class="resume-contact">
+							09134626263 &nbsp;&nbsp; | &nbsp;&nbsp; www.reallygreatsite.com &nbsp;&nbsp; | &nbsp;&nbsp; ibehaugustine21@gmail.com
+						</div>
+					</div>
+
+					<div class="resume-right">
+						<div class="resume-section" aria-label="Experience">
+							<h2>EXPERIENCE</h2>
+							<div style="margin-bottom:.5rem">
+								<strong>Computer Manager — Secondary School</strong> — 2025
+								<ul class="resume-list">
+									<li>Managed school computer systems and ensured proper functioning</li>
+									<li>Assisted teachers and students with computer operations</li>
+									<li>Performed basic system maintenance</li>
+								</ul>
+							</div>
+
+							<div style="margin-bottom:.5rem">
+								<strong>Computer Repair Assistant — Secondary School</strong>
+								<ul class="resume-list">
+									<li>Diagnosed and repaired faulty computers</li>
+									<li>Carried out routine maintenance and hardware support</li>
+									<li>Ensured systems were always functional for school use</li>
+								</ul>
+							</div>
+						</div>
+
+						<div class="resume-section" aria-label="Professional Training">
+							<h2>PROFESSIONAL TRAINING</h2>
+							<div style="margin-bottom:.5rem">
+								<strong>Osayuhi Computer Maintenance and Repair Training, Benin City</strong>
+								<p style="margin:.25rem 0;color:rgba(255,255,255,0.85)">Computer hardware troubleshooting; practical hands-on training in computer servicing.</p>
+							</div>
+							<div>
+								<strong>Basic Information Literacy Course — Certified Learner</strong>
+								<p style="margin:.25rem 0;color:rgba(255,255,255,0.85)">How to research, evaluate, and use information effectively — completed and certified online course.</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<section id="contact" style="margin-top:1.25rem" aria-label="Contact information">
+				<h3 style="margin:0 0 .5rem 0">Contact</h3>
+				<p><strong>Email:</strong>
+					<span id="email-text">ibehaugustine21@gmail.com</span>
+					<a href="mailto:ibehaugustine21@gmail.com" style="margin-left:.5rem">Send</a>
+					<button id="copy-email" class="copy-btn" aria-label="Copy email" style="margin-left:.5rem">Copy</button>
+				</p>
+				<p><strong>Phone:</strong>
+					<span id="phone-text">09134626263</span>
+					<a href="tel:+2349134626263" style="margin-left:.5rem">Call</a>
+					<button id="copy-phone" class="copy-btn" aria-label="Copy phone" style="margin-left:.5rem">Copy</button>
+				</p>
+			</section>
+		</section>
+	</main>
+
+	<script>
+		// Clock
+		function updateClock(){
+			const el = document.getElementById('clock');
+			const now = new Date();
+			const date = now.toLocaleDateString(undefined,{weekday:'short',year:'numeric',month:'short',day:'numeric'});
+			const time = now.toLocaleTimeString();
+			if(el) el.innerHTML = `<div class="clock-date">${date}</div><div class="clock-time">${time}</div>`;
+		}
+		updateClock();setInterval(updateClock,1000);
+
+		// On load: start welcome countdown
+		document.addEventListener('DOMContentLoaded',()=>{
+			startWelcomeCountdown(10);
+		});
+
+		// Media upload handling (client-side previews only)
+		const input = document.getElementById('file-input');
+		const gallery = document.getElementById('gallery');
+		const clearBtn = document.getElementById('clear-gallery');
+		const unlockBtn = document.getElementById('unlock-gallery');
+		let galleryUnlocked = false;
+		// start locked
+		if(input) input.disabled = true;
+		if(clearBtn) clearBtn.disabled = true;
+
+		function handleFiles(files){
+			Array.from(files).forEach(file=>{
+				const url = URL.createObjectURL(file);
+				const item = document.createElement('div');
+				item.className = 'media-item';
+				if(file.type.startsWith('image/')){
+					const img = document.createElement('img');
+					img.src = url; img.className='thumb'; img.alt = file.name;
+					item.appendChild(img);
+				} else if(file.type.startsWith('video/')){
+					const vid = document.createElement('video');
+					vid.src = url; vid.className='thumb'; vid.controls = true;
+					item.appendChild(vid);
+				} else {
+					const p = document.createElement('p'); p.textContent = file.name; item.appendChild(p);
+				}
+				const remove = document.createElement('button'); remove.className='remove-btn'; remove.title='Remove'; remove.innerHTML='✕';
+				remove.addEventListener('click',()=>{ URL.revokeObjectURL(url); item.remove(); });
+				item.appendChild(remove);
+				gallery.appendChild(item);
+			});
+		}
+
+		input.addEventListener('change',(e)=>{ handleFiles(e.target.files); });
+		clearBtn.addEventListener('click',()=>{ gallery.innerHTML=''; });
+
+		if(unlockBtn){
+			unlockBtn.addEventListener('click', ()=>{
+				const attempt = prompt('Enter gallery password:');
+				if(attempt === null) return;
+				if(attempt === 'DIKA77'){
+					galleryUnlocked = true;
+					if(input) input.disabled = false;
+					if(clearBtn) clearBtn.disabled = false;
+					unlockBtn.textContent = 'Gallery Unlocked';
+					unlockBtn.disabled = true;
+					alert('Gallery unlocked. You may now upload files.');
+				} else {
+					alert('Incorrect gallery password.');
+				}
+			});
+		}
+
+		// Drag & drop support
+		const uploadArea = document.getElementById('media');
+		['dragenter','dragover'].forEach(ev=>uploadArea.addEventListener(ev,e=>{ 
+			if(!galleryUnlocked) { e.preventDefault(); e.stopPropagation(); return; }
+			e.preventDefault(); e.stopPropagation(); uploadArea.style.opacity=0.9;
+		}));
+		['dragleave','drop'].forEach(ev=>uploadArea.addEventListener(ev,e=>{ 
+			if(!galleryUnlocked) { e.preventDefault(); e.stopPropagation(); return; }
+			e.preventDefault(); e.stopPropagation(); uploadArea.style.opacity=1;
+		}));
+		uploadArea.addEventListener('drop',(e)=>{ 
+			if(!galleryUnlocked) { e.preventDefault(); e.stopPropagation(); return; }
+			if(e.dataTransfer && e.dataTransfer.files) handleFiles(e.dataTransfer.files); 
+		});
+		// Print button: attempt to print the embedded PDF, fallback to window.print()
+		const printBtn = document.getElementById('print-btn');
+		if(printBtn){
+			printBtn.addEventListener('click',()=>{
+				const iframe = document.querySelector('.cv-embed');
+				try{
+					if(iframe && iframe.contentWindow) iframe.contentWindow.print();
+					else window.print();
+				}catch(e){ window.print(); }
+			});
+		}
+
+		// Copy-to-clipboard for contact info
+		function flashButton(btn){
+			const orig = btn.textContent;
+			btn.textContent = 'Copied!';
+			btn.disabled = true;
+			setTimeout(()=>{ btn.textContent = orig; btn.disabled = false; },1500);
+		}
+		const copyEmail = document.getElementById('copy-email');
+		const copyPhone = document.getElementById('copy-phone');
+		if(copyEmail){
+			copyEmail.addEventListener('click',()=>{
+				const txt = document.getElementById('email-text').textContent.trim();
+				navigator.clipboard.writeText(txt).then(()=>flashButton(copyEmail));
+			});
+		}
+		if(copyPhone){
+			copyPhone.addEventListener('click',()=>{
+				const txt = document.getElementById('phone-text').textContent.trim();
+				navigator.clipboard.writeText(txt).then(()=>flashButton(copyPhone));
+			});
+		}
+
+		// Settings menu toggle and print/download handlers (uses modal for password input)
+		const settingsToggle = document.getElementById('settings-toggle');
+		const settingsMenu = document.getElementById('settings-menu');
+		const printResumeBtn = document.getElementById('print-resume');
+
+		// password modal elements will be added to DOM
+		function createPasswordModal(){
+			if(document.getElementById('password-modal')) return;
+			const wrap = document.createElement('div');
+			wrap.id = 'password-modal'; wrap.className = 'modal-overlay'; wrap.style.display = 'none';
+			wrap.innerHTML = `
+				<div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="password-modal-title">
+					<h3 id="password-modal-title">Settings Password</h3>
+					<p id="password-modal-msg">Enter password to access settings.</p>
+					<input id="password-modal-input" class="modal-input" type="password" autocomplete="off" autocorrect="off" autocapitalize="off" inputmode="text" />
+					<div class="modal-actions">
+						<button id="password-modal-ok" class="settings-btn">OK</button>
+						<button id="password-modal-cancel" class="settings-btn" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:#fff">Cancel</button>
+					</div>
+				</div>`;
+			document.body.appendChild(wrap);
+
+			const ok = document.getElementById('password-modal-ok');
+			const cancel = document.getElementById('password-modal-cancel');
+			const input = document.getElementById('password-modal-input');
+
+			function hideModal(){ wrap.style.display = 'none'; input.value = ''; }
+
+			cancel.addEventListener('click', ()=>{ hideModal(); });
+			wrap.addEventListener('click', (e)=>{ if(e.target === wrap) hideModal(); });
+			input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') ok.click(); });
+
+			return {wrap, input, ok, hideModal};
+		}
+
+		function showPasswordFlow(onSuccess){
+			createPasswordModal();
+			const modal = document.getElementById('password-modal');
+			const input = document.getElementById('password-modal-input');
+			const ok = document.getElementById('password-modal-ok');
+			const msg = document.getElementById('password-modal-msg');
+			modal.style.display = 'flex';
+			// Delay focus slightly to improve on-screen keyboard reliability on mobile
+			setTimeout(()=>{
+				try{
+					input.focus();
+					input.select();
+					input.scrollIntoView({behavior:'smooth', block:'center'});
+				}catch(e){}
+			},50);
+
+			// Determine stored password
+			let stored = null;
+			try{ stored = localStorage.getItem('cv_settings_password'); }catch(e){ stored = null; }
+
+			if(!stored){
+				msg.textContent = 'Create a settings password (will be saved locally).';
+				ok.onclick = ()=>{
+					const val = input.value;
+					if(!val){ alert('Cancelled'); modal.style.display='none'; return; }
+					// ask for confirm using same modal
+					msg.textContent = 'Confirm password'; input.value = ''; input.focus();
+					ok.onclick = ()=>{
+						const confirm = input.value;
+						if(confirm !== val){ alert('Passwords do not match.'); modal.style.display='none'; return; }
+						try{ localStorage.setItem('cv_settings_password', val); }catch(e){}
+						modal.style.display='none'; alert('Password saved locally.');
+						if(typeof onSuccess === 'function') onSuccess();
+					};
+				};
+			} else {
+				msg.textContent = 'Enter settings password';
+				ok.onclick = ()=>{
+					const attempt = input.value;
+					if(attempt === stored){ modal.style.display='none'; if(typeof onSuccess === 'function') onSuccess(); }
+					else { alert('Incorrect password.'); }
+				};
+			}
+		}
+
+		if(settingsToggle && settingsMenu){
+			settingsToggle.addEventListener('click', ()=>{
+				const open = settingsMenu.style.display === 'block';
+				if(open){ settingsMenu.style.display = 'none'; settingsToggle.setAttribute('aria-expanded','false'); settingsMenu.setAttribute('aria-hidden','true'); return; }
+				showPasswordFlow(()=>{
+					settingsMenu.style.display = 'block';
+					settingsToggle.setAttribute('aria-expanded','true');
+					settingsMenu.setAttribute('aria-hidden','false');
+				});
+			});
+			document.addEventListener('click', (e)=>{
+				if(!settingsMenu.contains(e.target) && !settingsToggle.contains(e.target)){
+					settingsMenu.style.display = 'none';
+					settingsToggle.setAttribute('aria-expanded','false');
+					settingsMenu.setAttribute('aria-hidden','true');
+				}
+			});
+		}
+		if(printResumeBtn){
+			printResumeBtn.addEventListener('click', ()=>{
+				// open a new window with resume content for printing
+				const content = document.getElementById('resume-content').innerHTML;
+				const win = window.open('','_blank');
+				win.document.write(`<html><head><title>Print Resume</title><style>body{font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial;margin:20px;color:#111} h1{font-size:24px}</style></head><body>${content}</body></html>`);
+				win.document.close();
+				win.focus();
+				setTimeout(()=>{ win.print(); win.close(); },300);
+			});
+		}
+
+		// Session timer: 1 hour with periodic beep and timeout back to welcome
+		let sessionTimer = null;
+		let sessionRemaining = 0;
+
+		function beep(){
+			try{
+				const ctx = new (window.AudioContext || window.webkitAudioContext)();
+				const o = ctx.createOscillator();
+				const g = ctx.createGain();
+				o.type = 'sine'; o.frequency.value = 880;
+				o.connect(g); g.connect(ctx.destination); g.gain.value = 0.0001;
+				g.gain.exponentialRampToValueAtTime(0.1, ctx.currentTime + 0.01);
+				setTimeout(()=>{ g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.2); o.stop(); },220);
+				o.start();
+			}catch(e){ console.warn('beep failed', e); }
+		}
+
+		function startSessionTimer(){
+			clearSessionTimer();
+			sessionRemaining = 600; // 10 minutes
+			const sessEl = document.getElementById('session-count');
+			if(sessEl) sessEl.style.display = 'block';
+			updateSessionDisplay();
+			sessionTimer = setInterval(()=>{
+				sessionRemaining--;
+				updateSessionDisplay();
+				if(sessionRemaining <= 300 && sessionRemaining % 60 === 0) beep();
+				if(sessionRemaining <= 0){
+					clearSessionTimer();
+					beep(); setTimeout(beep,220); setTimeout(beep,440);
+					showTimeoutAndReturn();
+				}
+			},1000);
+		}
+
+		function updateSessionDisplay(){
+			const el = document.getElementById('session-count');
+			if(!el) return;
+			let s = sessionRemaining;
+			if(!s || s < 0) s = 0;
+			const hh = String(Math.floor(s/3600)).padStart(2,'0');
+			const mm = String(Math.floor((s%3600)/60)).padStart(2,'0');
+			const ss = String(s%60).padStart(2,'0');
+			el.textContent = `${hh}:${mm}:${ss}`;
+		}
+
+		function clearSessionTimer(){
+			if(sessionTimer){ clearInterval(sessionTimer); sessionTimer = null; }
+			sessionRemaining = 0;
+			const el = document.getElementById('session-count');
+			if(el) el.style.display = 'none';
+		}
+		function showTimeoutAndReturn(){
+			alert('Session timed out — returning to home.');
+			showWelcomeOverlay(true);
+		}
+
+		// Return/Home button handler
+		const returnBtn = document.getElementById('return-home');
+		if(returnBtn){
+			returnBtn.addEventListener('click', ()=>{
+				// Immediately show welcome overlay
+				showWelcomeOverlay(false);
+				clearSessionTimer();
+			});
+		}
+
+		// Show welcome overlay helper: show overlay and optionally start countdown
+		let welcomeCountdownInterval = null;
+		let welcomeSeconds = 0;
+		function showWelcomeOverlay(startCountdown){
+			const welcome = document.getElementById('welcome');
+			const main = document.querySelector('main');
+			if(welcome){ welcome.classList.remove('welcome-hidden'); }
+			if(main){ main.classList.add('hidden'); }
+			// If caller passes false, show overlay but pause at 10s
+			if(startCountdown === false){
+				if(welcomeCountdownInterval){ clearInterval(welcomeCountdownInterval); welcomeCountdownInterval = null; }
+				welcomeSeconds = 10;
+				const el = document.getElementById('welcome-count');
+				if(el) el.textContent = `Paused — ${welcomeSeconds}s`;
+				return;
+			}
+			startWelcomeCountdown(typeof startCountdown === 'number' ? startCountdown : 10);
+		}
+
+		function tickWelcome(){
+			const el = document.getElementById('welcome-count');
+			welcomeSeconds--;
+			if(el) el.textContent = `Welcome — ${welcomeSeconds}s`;
+			if(welcomeSeconds <= 0){
+				clearInterval(welcomeCountdownInterval);
+				welcomeCountdownInterval = null;
+				revealMainCV();
+			}
+		}
+
+		function startWelcomeCountdown(forceStartSeconds){
+			// start or restart the welcome countdown; forceStartSeconds overrides default
+			if(welcomeCountdownInterval) clearInterval(welcomeCountdownInterval);
+			welcomeSeconds = typeof forceStartSeconds === 'number' ? forceStartSeconds : 10;
+			const el = document.getElementById('welcome-count');
+			if(el) el.textContent = `Welcome — ${welcomeSeconds}s`;
+			// show overlay explicitly
+			const welcome = document.getElementById('welcome');
+			const main = document.querySelector('main');
+			if(welcome) welcome.classList.remove('welcome-hidden');
+			if(main) main.classList.add('hidden');
+			welcomeCountdownInterval = setInterval(tickWelcome,1000);
+		}
+
+		function pauseWelcomeCountdown(){
+			if(welcomeCountdownInterval){
+				clearInterval(welcomeCountdownInterval);
+				welcomeCountdownInterval = null;
+				const el = document.getElementById('welcome-count');
+				if(el) el.textContent = `Paused — ${welcomeSeconds}s`;
+			}
+		}
+
+		function resumeWelcomeCountdown(){
+			if(!welcomeCountdownInterval && welcomeSeconds > 0){
+				const el = document.getElementById('welcome-count');
+				if(el) el.textContent = `Welcome — ${welcomeSeconds}s`;
+				welcomeCountdownInterval = setInterval(tickWelcome,1000);
+			}
+		}
+
+		function revealMainCV(){
+			const welcome = document.getElementById('welcome');
+			const main = document.querySelector('main');
+			if(welcome) welcome.classList.add('welcome-hidden');
+			if(main) main.classList.remove('hidden');
+			// Start the session timer and make sure the session time display is visible
+			startSessionTimer();
+			const sessEl = document.getElementById('session-count');
+			if(sessEl) sessEl.style.display = 'block';
+		}
+
+		// Pause when user presses/touches the welcome overlay, resume on release
+		document.addEventListener('DOMContentLoaded', ()=>{
+			const welcomeEl = document.getElementById('welcome');
+			if(!welcomeEl) return;
+			welcomeEl.addEventListener('pointerdown', (e)=>{
+				if(e.target && e.target.id === 'skip-welcome') return; // don't pause when pressing skip
+				pauseWelcomeCountdown();
+			});
+			['pointerup','pointercancel','pointerleave'].forEach(ev=>{
+				welcomeEl.addEventListener(ev, ()=>{ resumeWelcomeCountdown(); });
+			});
+		});
+
+		// Skip button behavior: clear countdown and reveal main CV immediately
+		const skipBtn = document.getElementById('skip-welcome');
+		if(skipBtn){
+			skipBtn.addEventListener('click', (ev)=>{
+				ev.preventDefault(); ev.stopPropagation();
+				if(typeof welcomeCountdownInterval !== 'undefined' && welcomeCountdownInterval){
+					clearInterval(welcomeCountdownInterval);
+					welcomeCountdownInterval = null;
+				}
+				revealMainCV();
+			});
+		}
+
+
+		// Avatar upload + center-square crop (client-side)
+		(function(){
+			const input = document.getElementById('avatar-input');
+			const changeMenuItem = document.getElementById('change-profile-image');
+			const modal = document.getElementById('avatar-crop-modal');
+			const canvas = document.getElementById('avatar-canvas');
+			const saveBtn = document.getElementById('save-avatar');
+			const cancelBtn = document.getElementById('cancel-avatar');
+			const avatarImg = document.getElementById('cv-avatar');
+			const ctx = canvas.getContext('2d');
+
+			function loadFromLocal(){
+				try{
+					const data = localStorage.getItem('dika-avatar');
+					if(data){ avatarImg.src = data; }
+				}catch(e){/* ignore */}
+			}
+			loadFromLocal();
+
+			if(changeMenuItem){ changeMenuItem.addEventListener('click',()=>{ input.click(); settingsMenu.style.display='none'; settingsToggle.setAttribute('aria-expanded','false'); settingsMenu.setAttribute('aria-hidden','true'); }); }
+			input.addEventListener('change',(e)=>{
+				const file = e.target.files && e.target.files[0];
+				if(!file) return;
+				const reader = new FileReader();
+				reader.onload = ()=>{
+					const img = new Image();
+					img.onload = ()=>{
+						// draw center-cropped square into canvas
+						const size = Math.min(img.width, img.height);
+						const sx = Math.floor((img.width - size)/2);
+						const sy = Math.floor((img.height - size)/2);
+						// draw to canvas sized 320x320 then scale via CSS
+						canvas.width = 320; canvas.height = 320;
+						ctx.clearRect(0,0,canvas.width,canvas.height);
+						ctx.drawImage(img, sx, sy, size, size, 0, 0, canvas.width, canvas.height);
+						modal.style.display = 'flex';
+					};
+					img.src = reader.result;
+				};
+				reader.readAsDataURL(file);
+			});
+
+			saveBtn.addEventListener('click',()=>{
+				const dataUrl = canvas.toDataURL('image/jpeg',0.9);
+				avatarImg.src = dataUrl;
+				try{ localStorage.setItem('dika-avatar', dataUrl); }catch(e){}
+				// Trigger download so user can save file to workspace as avatar.jpg
+				try{
+					const a = document.createElement('a');
+					a.href = dataUrl;
+					a.download = 'avatar.jpg';
+					document.body.appendChild(a);
+					a.click();
+					document.body.removeChild(a);
+				}catch(e){ console.warn('download failed', e); }
+				modal.style.display = 'none';
+				input.value = '';
+			});
+			cancelBtn.addEventListener('click',()=>{ modal.style.display='none'; input.value=''; });
+		})();
+	</script>
+
+</body>
+</html>
